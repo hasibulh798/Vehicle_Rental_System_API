@@ -76,7 +76,7 @@ src/
 ### **1. Clone the Repository**
 
 ```
-git clone
+git clone https://github.com/hasibulh798/Vehicle_Rental_System_API/tree/main
 cd vehicle-rental-system
 ```
 
