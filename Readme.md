@@ -2,9 +2,7 @@
 
 ### 🔗 Live URL
 
-**Backend API Live URL:** _Add your deployed link here_
-
----
+## **Backend API Live URL:** https://vehicle-rental-system-kis4o1frl.vercel.app
 
 A complete backend API for managing a **vehicle rental service** with authentication, user roles, vehicle inventory, and booking management.
 
@@ -48,16 +46,29 @@ src/
 │   ├── auth/
 │   │   ├── auth.route.ts
 │   │   ├── auth.controller.ts
-│   │   ├── auth.service.ts
-│   │   └── auth.validation.ts
+│   │   └── auth.service.ts
+│   │
 │   ├── users/
+│   │   ├── user.route.ts
+│   │   ├── user.controller.ts
+│   │   └── user.service.ts
 │   ├── vehicles/
-│   ├── bookings/
-│   └── ...
+│   │   ├── vehicles.route.ts
+│   │   ├── vehicles.controller.ts
+│   │   └── vehicles.service.ts
+│   └── bookings/
+│       ├── bookings.route.ts
+│       ├── bookings.controller.ts
+│       └── bookings.service.ts
+│
 │
 ├── config/
+|     └── index.ts
 ├── middlewares/
-└── app.ts
+|     └── auth.ts
+├── database/
+|     └── db.ts
+└── server.ts
 ```
 
 ## ⚙️ Setup & Installation
@@ -65,7 +76,7 @@ src/
 ### **1. Clone the Repository**
 
 ```
-git clone <your-repo-url>
+git clone
 cd vehicle-rental-system
 ```
 
@@ -80,18 +91,12 @@ npm install
 Create a `.env` file:
 
 ```
-DATABASE_URL=postgres://user:password@localhost:5432/vehiclerental
+CONNECTION_STRING=postgres://user:password@localhost:5432/vehiclerental
 JWT_SECRET=your_jwt_secret
 PORT=5000
 ```
 
-### **4. Run Database Migrations (If applicable)**
-
-```
-npm run migrate
-```
-
-### **5. Start the Development Server**
+### **4. Start the Development Server**
 
 ```
 npm run dev
@@ -112,13 +117,6 @@ npm run dev
 Base URL: `http://localhost:5000/api/v1`
 
 - Use **Postman / Thunder Client** for API testing
-- Add JWT token in headers:
-
-```
-Authorization: Bearer <token>
-```
-
----
 
 ### **1. Install dependencies**
 
@@ -129,7 +127,7 @@ npm install
 ### **2. Set environment variables** (`.env`)
 
 ```
-DATABASE_URL=
+CONNECTION_STRING=
 JWT_SECRET=
 PORT=5000
 ```

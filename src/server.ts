@@ -17,7 +17,7 @@ app.use(express.json());
 initDB();
 
 //Test route
-app.get("/", (req: Request, res: Response) => {
+app.get("/api/v1", (req: Request, res: Response) => {
   res.status(200).json({
     message: "Welcome to the Vehicle Rental System API",
   });
