@@ -18,10 +18,8 @@ initDB();
 
 //Test route
 app.get("/", (req: Request, res: Response) => {
-  console.log("Hello from the root route");
   res.status(200).json({
-    message: "This is the root route",
-    path: req.path,
+    message: "Welcome to the Vehicle Rental System API",
   });
 });
 

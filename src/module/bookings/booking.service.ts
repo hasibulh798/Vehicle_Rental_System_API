@@ -4,6 +4,10 @@ import { pool } from "../../database/db";
 export const createBooking = async (payload: Record<string, unknown>) => {
   const { customer_id, vehicle_id, rent_start_date, rent_end_date } = payload;
 
+  if (!customer_id || !vehicle_id || !rent_start_date || !rent_end_date) {
+    throw new Error("All field are required!");
+  }
+
   const vehicleResult = await pool.query(
     `SELECT vehicle_name, daily_rent_price, availability_status FROM vehicles WHERE id=$1`,
     [vehicle_id]
@@ -85,19 +89,74 @@ export const getAllBookings = async (user: any) => {
       vehicle: withoutTypeVehicle[index],
     };
   });
-  console.log(adminView);
+
   const customerView = bookingResult.rows.map((booking, index) => {
     return {
       ...booking,
       vehicle: vehicles[index],
     };
   });
-  console.log(customerView);
 
-  return  { adminView, customerView };
+  return { adminView, customerView };
+};
+
+//update booking
+export const updateBookings = async (
+  body: Record<string, unknown>,
+  bookingId: string,
+  currentUser: Record<string, any>
+) => {
+  const { status } = body;
+
+  // 1. Fetch booking details
+  const bookingRes = await pool.query(`SELECT * FROM bookings WHERE id=$1`, [
+    bookingId,
+  ]);
+  if (bookingRes.rows.length === 0) throw new Error("Booking not found");
+
+  const booking = bookingRes.rows[0];
+  const vehicleId = booking.vehicle_id;
+
+  // Role-based validation
+  if (status === "cancelled") {
+    if (currentUser.role !== "customer") {
+      throw new Error("Only customers can cancel bookings");
+    }
+    if (booking.customer_id !== currentUser.id) {
+      throw new Error("You can cancel only your own bookings");
+    }
+  }
+
+  if (status === "returned") {
+    if (currentUser.role !== "admin") {
+      throw new Error("Only admin can mark booking as returned");
+    }
+  }
+
+  // 2. Update booking status
+  const result = await pool.query(
+    `UPDATE bookings SET status=$1 WHERE id=$2 RETURNING *`,
+    [status, bookingId]
+  );
+
+  // 3. If cancelled or returned → vehicle available
+  if (status === "cancelled" || status === "returned") {
+    await pool.query(
+      `UPDATE vehicles SET availability_status='available' WHERE id=$1`,
+      [vehicleId]
+    );
+  }
+  const vehicle = await pool.query(
+    `SELECT availability_status FROM vehicles WHERE id=$1`,
+    [vehicleId]
+  );
+  const updateResult = result.rows[0];
+  const updateVehicle = vehicle.rows[0];
+  return { updateResult, updateVehicle };
 };
 
 export const bookingServices = {
   createBooking,
   getAllBookings,
+  updateBookings,
 };

@@ -23,7 +23,11 @@ const getAllUsers = async (req: Request, res: Response) => {
 const updateUser = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const result = await userServices.updateUser(req.body, userId as string);
+    const result = await userServices.updateUser(
+      req.body,
+      userId as string,
+      req.user as Record<string, any>
+    );
 
     const { password, ...userWithoutPassword } = result.rows[0];
 
@@ -51,6 +55,7 @@ const updateUser = async (req: Request, res: Response) => {
 const deleteUser = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+    console.log(userId);
     const result = await userServices.deleteUser(userId as string);
     return res.status(200).json({
       success: true,

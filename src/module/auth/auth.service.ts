@@ -1,12 +1,15 @@
 import bcrypt from "bcrypt";
-import { pool } from "../../database/db";
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken";
 import { config } from "../../config";
+import { pool } from "../../database/db";
 
-const secret = config.secret
+const secret = config.secret;
 
 const signupUser = async (payload: Record<string, unknown>) => {
   const { name, email, password, phone, role } = payload;
+  if (!name || !email || !password || !phone || !role) {
+    throw new Error("All fields are required!");
+  }
 
   const hashPassword = await bcrypt.hash(password as string, 12);
 
@@ -17,11 +20,9 @@ const signupUser = async (payload: Record<string, unknown>) => {
   return result;
 };
 
-const loginUser = async(email:string, password:string)=> {
-    const user = await pool.query(
-    `SELECT * FROM users WHERE email=$1`,[email]
-  );
-  
+const loginUser = async (email: string, password: string) => {
+  const user = await pool.query(`SELECT * FROM users WHERE email=$1`, [email]);
+
   if (user.rows.length === 0) {
     throw new Error("User not found!");
   }
@@ -34,7 +35,7 @@ const loginUser = async(email:string, password:string)=> {
     id: user.rows[0].id,
     name: user.rows[0].name,
     email: user.rows[0].email,
-    role : user.rows[0].role,
+    role: user.rows[0].role,
   };
 
   const token = jwt.sign(jwtPayload, secret as string, { expiresIn: "7d" });
@@ -42,10 +43,7 @@ const loginUser = async(email:string, password:string)=> {
   return { token, user: user.rows[0] };
 };
 
-
-
-
 export const authServices = {
   signupUser,
-  loginUser
+  loginUser,
 };

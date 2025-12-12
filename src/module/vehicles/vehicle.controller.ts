@@ -1,9 +1,13 @@
 import { Request, Response } from "express";
+import { JwtPayload } from "jsonwebtoken";
 import { vehicleServices } from "./vehicle.service";
 
 const createVehicle = async (req: Request, res: Response) => {
   try {
-    const result = await vehicleServices.createVehicle(req.body);
+    const result = await vehicleServices.createVehicle(
+      req.body,
+      req.user as JwtPayload
+    );
 
     return res.status(201).json({
       success: true,
@@ -13,7 +17,8 @@ const createVehicle = async (req: Request, res: Response) => {
   } catch (err: any) {
     return res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Internal server error",
+      errors: err.message,
     });
   }
 };
@@ -37,7 +42,11 @@ const getAllVehicles = async (req: Request, res: Response) => {
   } catch (err: any) {
     return res
       .status(500)
-      .json({ success: false, message: "Internal server error!" });
+      .json({
+        success: false,
+        message: "Internal server error",
+        errors: err.message,
+      });
   }
 };
 
@@ -46,7 +55,7 @@ const getVehicleById = async (req: Request, res: Response) => {
   try {
     const { vehicleId } = req.params;
     const result = await vehicleServices.getVehicleById(vehicleId as string);
-    
+
     if (result.rows.length == 0) {
       return res.status(404).json({
         success: false,
@@ -61,7 +70,8 @@ const getVehicleById = async (req: Request, res: Response) => {
   } catch (err: any) {
     return res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Internal server error",
+      errors: err.message,
     });
   }
 };
@@ -83,7 +93,8 @@ const updateVehicle = async (req: Request, res: Response) => {
   } catch (err: any) {
     return res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Internal server error",
+      errors: err.message,
     });
   }
 };
@@ -93,9 +104,7 @@ const deleteVehicle = async (req: Request, res: Response) => {
   try {
     const { vehicleId } = req.params;
 
-    const result = await vehicleServices.deleteVehicle(
-      vehicleId as string
-    );
+    const result = await vehicleServices.deleteVehicle(vehicleId as string);
     return res.status(200).json({
       success: true,
       message: "Vehicle deleted successfully",
@@ -104,7 +113,8 @@ const deleteVehicle = async (req: Request, res: Response) => {
   } catch (err: any) {
     return res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Internal server error",
+      errors: err.message,
     });
   }
 };
@@ -113,5 +123,5 @@ export const vehicleControllers = {
   getAllVehicles,
   getVehicleById,
   updateVehicle,
-  deleteVehicle
+  deleteVehicle,
 };

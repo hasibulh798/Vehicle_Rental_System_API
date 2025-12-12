@@ -5,41 +5,63 @@ import { pool } from "../database/db";
 
 const secret = config.secret;
 
-const auth = (...roles: ("admin" | "user")[]) => {
-  //['admin']
+const auth = (...roles: ("admin" | "customer")[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization?.split(" ")[1];
+    try {
+      const token = req.headers.authorization?.split(" ")[1];
 
-    if (!token) {
-      // throw new Error("You are not authorized");
-      res.status(401).json({
+      if (!token) {
+        return res.status(401).json({
+          success: false,
+          message: "Token not provided!",
+        });
+      }
+
+      let decoded: JwtPayload;
+
+      try {
+        decoded = jwt.verify(token, secret as string) as JwtPayload;
+      } catch (err) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid or expired token!",
+        });
+      }
+
+      // Find user in DB
+      const userResult = await pool.query(
+        `SELECT id, name, email, role FROM users WHERE email=$1`,
+        [decoded.email]
+      );
+
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found!",
+        });
+      }
+
+      const user = userResult.rows[0];
+
+      // attach logged-in user to req
+      req.user = user;
+
+      // Role authorization check
+      if (roles.length && !roles.includes(user.role)) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied!",
+        });
+      }
+
+      next();
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
         success: false,
-        message: "You are not authorized",
+        message: "Authentication failed!",
       });
     }
-    const decoded = jwt.verify(token as string, secret as string) as JwtPayload;
-    const user = await pool.query(
-      `
-      SELECT * FROM users WHERE email=$1
-      `,
-      [decoded.email]
-    );
-    if (user.rows.length === 0) {
-      // throw new Error("User not found!");
-      res.status(404).json({
-        success: false,
-        message: "User not found!",
-      });
-    }
-    req.user = decoded;
-    if (roles.length && !roles.includes(decoded.role)) {
-      // throw new Error("You are not authorized");
-      res.status(403).json({
-        success: false,
-        message: "You are not authorized",
-      });
-    }
-    next();
   };
 };
 

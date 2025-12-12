@@ -14,7 +14,8 @@ const signupController = async (req: Request, res: Response) => {
   } catch (err: any) {
     res.status(500).json({
       success: false,
-      message: "Server internal error!",
+      message: "Internal server error",
+      errors: err.message
     });
   }
 };
@@ -34,7 +35,8 @@ const signinController = async (req: Request, res: Response) => {
   } catch (err: any) {
     res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Internal server error",
+      errors: err.message
     });
   }
 };

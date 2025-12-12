@@ -1,6 +1,9 @@
 import { pool } from "../../database/db";
 
-const createVehicle = async (payload: Record<string, unknown>) => {
+const createVehicle = async (
+  payload: Record<string, unknown>,
+  user: Record<string, any>
+) => {
   const {
     vehicle_name,
     type,
@@ -9,6 +12,20 @@ const createVehicle = async (payload: Record<string, unknown>) => {
     availability_status,
   } = payload;
 
+  if (
+    !vehicle_name ||
+    !type ||
+    !registration_number ||
+    !daily_rent_price ||
+    !availability_status
+  ) {
+    throw new Error("All field are required!");
+  }
+
+  const userRole = user.role;
+  if (userRole !== "admin") {
+    throw new Error("Admin only");
+  }
   const result = await pool.query(
     `INSERT INTO vehicles (vehicle_name, type, registration_number, daily_rent_price, availability_status) VALUES($1, $2, $3, $4, $5) RETURNING *`,
     [
@@ -66,6 +83,20 @@ const updateVehicle = async (payload: Record<string, unknown>, id: string) => {
 
 //delete vehicle
 const deleteVehicle = async (id: string) => {
+  const vehicle = await pool.query(
+    `SELECT availability_status FROM vehicles WHERE id=$1`,
+    [id]
+  );
+
+  if (vehicle.rowCount === 0) {
+    throw new Error("Vehicle not found");
+  }
+
+  const status = vehicle.rows[0].availability_status;
+
+  if (status !== "available") {
+    throw new Error("Cannot delete.It is currently booked.");
+  }
   const result = await pool.query(
     `
     DELETE FROM vehicles WHERE id=$1

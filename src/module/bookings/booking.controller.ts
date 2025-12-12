@@ -19,7 +19,8 @@ const createBooking = async (req: Request, res: Response) => {
   } catch (err: any) {
     return res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Internal server error",
+      errors: err.message,
     });
   }
 };
@@ -28,6 +29,9 @@ const createBooking = async (req: Request, res: Response) => {
 const getAllBookings = async (req: Request, res: Response) => {
   try {
     const result = await bookingServices.getAllBookings(req.user);
+    console.log(result.customerView);
+    console.log("User in req.user:", req.user);
+
     if (req.user?.role == "admin") {
       return res.status(200).json({
         success: true,
@@ -44,12 +48,44 @@ const getAllBookings = async (req: Request, res: Response) => {
   } catch (err: any) {
     return res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Internal server error",
+      errors: err.message,
     });
   }
 };
 
+//update booking
+const updateBookings = async (req: Request, res: Response) => {
+  try {
+    const result = await bookingServices.updateBookings(
+      req.body,
+      req.params.bookingId as string,
+      req.user as Record<string, any>
+    );
+    if (req.user?.role === "customer") {
+      res.status(200).json({
+        success: true,
+        message: "Booking cancelled successfully",
+        data: result.updateResult,
+      });
+    }
+    if (req.user?.role === "admin") {
+      res.status(200).json({
+        success: true,
+        message: "Booking marked as returned. Vehicle is now available",
+        data: { ...result.updateResult, vehicle: result.updateVehicle },
+      });
+    }
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      errors: err.message,
+    });
+  }
+};
 export const bookingController = {
   createBooking,
   getAllBookings,
+  updateBookings,
 };
